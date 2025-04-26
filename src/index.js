@@ -1,7 +1,24 @@
 import ReactDOM from './react-dom';
-import React from './react'
-// const root = ReactDOM.createRoot(document.getElementById('root'));
-// let element = <div>Hello React</div>
-// root.render(element);
-ReactDOM.render(<div style={{color: 'red'}}>Hello React<span> span</span></div>, document.getElementById('root'))
-console.log(<div>Hello React<span> span</span></div>)// vdom
+import React from './react';
+
+class ClassComponent extends React.Component {
+    render() {
+        return (
+            <div style={{ color: 'red' }}>
+                Class Hello React<span> span {this.props.a}</span>
+            </div>
+        );
+    }
+}
+
+function FuncComponent(props) {
+    return (
+        <div style={{ color: 'red' }}>
+            Functional Hello React<span> span</span>
+        </div>
+    );
+}
+
+
+ReactDOM.render(<FuncComponent />, document.getElementById('root'));
+ReactDOM.render(<ClassComponent a="1"/>, document.getElementById('root'));

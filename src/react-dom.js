@@ -1,37 +1,59 @@
-import { REACT_ELEMENT } from "./utils";
+import { REACT_ELEMENT } from './utils';
 
 //initial render
 function render(VNode, containerDOM) {
     // convert vdom to real dom
     // mount the real dom to containerDOM
-
-    mount(VNode, containerDOM)
+    mount(VNode, containerDOM);
 }
 
 function createDOM(VNode) {
-    const {type, props} = VNode;
+    const { type, props } = VNode;
 
     let dom;
-
+    if (typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT && VNode.type.IS_CLASS_COMPONENGT) {
+        return getDomByClassComponent(VNode);
+    } else if (typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT) {
+        return getDOMFromFunctionalComponent(VNode);
+    }
     if (type && VNode.$$typeof === REACT_ELEMENT) {
-        dom = document.createElement(type)
+        dom = document.createElement(type);
     }
 
     if (props) {
         //single children
         if (typeof props.children === 'object' && props.children.type) {
-            mount(props.children, dom)
+            mount(props.children, dom);
         } else if (props.children instanceof Array) {
-            mountArray(props.children, dom)
+            mountArray(props.children, dom);
         } else if (typeof props.children === 'string') {
-            dom.appendChild(document.createTextNode(props.children))
+            dom.appendChild(document.createTextNode(props.children));
         }
-        setPropsForDOM(dom, props)
+        setPropsForDOM(dom, props);
     }
     return dom;
 }
 
-function setPropsForDOM(dom, VNodeProps={}) {
+function getDOMFromFunctionalComponent(VNode) {
+    let { type, props } = VNode;
+    let renderVNode = type(props);
+    if (!renderVNode) {
+        return null;
+    }
+    return createDOM(renderVNode);
+}
+
+function getDomByClassComponent(VNode) {
+    const { type, props } = VNode;
+    const instance = new type(props);
+    const renderVNode = instance.render();
+    if (!render) {
+        return null;
+    }
+    return createDOM(renderVNode);
+}
+
+function setPropsForDOM(dom, VNodeProps = {}) {
     if (!dom) {
         return;
     }
@@ -51,11 +73,10 @@ function setPropsForDOM(dom, VNodeProps={}) {
 }
 
 function mount(VNode, containerDOM) {
-   let newDOM =  createDOM(VNode);
-   if
-   (newDOM) {
-    containerDOM.appendChild(newDOM)
-   }
+    let newDOM = createDOM(VNode);
+    if (newDOM) {
+        containerDOM.appendChild(newDOM);
+    }
 }
 
 function mountArray(children, containerDOM) {

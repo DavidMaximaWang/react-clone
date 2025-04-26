@@ -1,13 +1,13 @@
 import { REACT_ELEMENT } from './utils';
+import { Component } from './Component';
 
 function createElement(type, properties, children) {
     let ref = properties.ref || null;
-    let key =
-        properties.key || null;
+    let key = properties.key || null;
 
-        ['key', 'ref', '__self', '__source'].forEach((key) => {
-            delete properties[key];
-        });
+    ['key', 'ref', '__self', '__source'].forEach((key) => {
+        delete properties[key];
+    });
     let props = { ...properties };
     if (arguments.length > 3) {
         props.children = Array.prototype.slice.call(arguments, 2);
@@ -37,5 +37,5 @@ function createElement(type, properties, children) {
     "_store": {}
 }*/
 
-const React = {  createElement }
+const React = { createElement, Component };
 export default React;
