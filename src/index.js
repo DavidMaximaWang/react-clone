@@ -2,10 +2,15 @@ import ReactDOM from './react-dom';
 import React from './react';
 
 class ClassComponent extends React.Component {
+    constructor(props) {
+        super();
+        this.props = props;
+        this.state = {aaa: '111'}
+    }
     render() {
         return (
             <div style={{ color: 'red' }}>
-                Class Hello React<span> span {this.props.a}</span>
+                Class Hello React<span> span {this.state.aaa}</span>
             </div>
         );
     }

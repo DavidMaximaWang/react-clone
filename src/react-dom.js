@@ -31,6 +31,8 @@ function createDOM(VNode) {
         }
         setPropsForDOM(dom, props);
     }
+
+    VNode.dom = dom;
     return dom;
 }
 
@@ -47,6 +49,14 @@ function getDomByClassComponent(VNode) {
     const { type, props } = VNode;
     const instance = new type(props);
     const renderVNode = instance.render();
+    instance.oldVNode = renderVNode;
+    /* //todo test only, remove later, start
+    setTimeout(()=> {
+        debugger;
+        instance.setState({'aaa': 'bbb'})
+        }, 4000)
+    //todo test only, remove later, end
+    */
     if (!render) {
         return null;
     }
@@ -88,6 +98,19 @@ function mountArray(children, containerDOM) {
             mount(child, containerDOM);
         }
     }
+}
+
+export function findDOMByVNode(VNode) {
+    if(!VNode) {
+        return
+    }
+    return VNode.dom;
+}
+
+export function updateDOMTree(oldDOM, newVNode) {
+    let parentNode = oldDOM.parentNode;
+    parentNode.removeChild(oldDOM)
+    parentNode.appendChild(createDOM(newVNode))
 }
 
 const ReactDOM = {
