@@ -1,6 +1,6 @@
 import { findDOMByVNode , updateDOMTree} from "./react-dom";
 
-export let updaterQueue = {
+export const updaterQueue = {
     isBatch: false,
     updaters: new Set()
 }

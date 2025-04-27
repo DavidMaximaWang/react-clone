@@ -1,4 +1,5 @@
 import { REACT_ELEMENT } from './utils';
+import {addEventListener} from './event.js'
 
 //initial render
 function render(VNode, containerDOM) {
@@ -71,7 +72,8 @@ function setPropsForDOM(dom, VNodeProps = {}) {
         if (key === 'children') continue;
         if (/^on[A-Z].*/.test(key)) {
             const eventName = key.toLowerCase();
-            dom.addEventListener(eventName, VNodeProps[key]);
+            // dom.addEventListener(eventName, VNodeProps[key]);
+            addEventListener(dom, eventName, VNodeProps[key])
         } else if (key === 'style') {
             Object.entries(VNodeProps[key]).forEach(([key, value]) => {
                 dom.style[key] = value;
