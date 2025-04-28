@@ -1,4 +1,4 @@
-import { REACT_ELEMENT } from './utils';
+import { REACT_ELEMENT, REACT_FORWARD_DREF } from './utils';
 import {addEventListener} from './event.js'
 
 //initial render
@@ -12,6 +12,9 @@ function createDOM(VNode) {
     const { type, props, ref } = VNode;
 
     let dom;
+    if (type && type.$$typeof === REACT_FORWARD_DREF) {
+        return getDOMFromForwardRef(VNode);
+    }
     if (typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT && VNode.type.IS_CLASS_COMPONENGT) {
         return getDomByClassComponent(VNode);
     } else if (typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT) {
@@ -38,6 +41,12 @@ function createDOM(VNode) {
 
     VNode.dom = dom;
     return dom;
+}
+
+function getDOMFromForwardRef(VNode) {
+    let {type, props, ref} = VNode;
+    let renderVNode = type.render(props, ref);
+    return createDOM(renderVNode)
 }
 
 function getDOMFromFunctionalComponent(VNode) {

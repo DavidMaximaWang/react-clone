@@ -19,11 +19,26 @@ class ClassComponent extends React.Component {
         );
     }
 }
-
+let ForwardRefFunctionalComponent = React.forwardRef((props, ref)=> {
+    return <input ref={ref} value="This is a forward ref functional component"/>
+})
 function FuncComponent(props) {
+    let forwardRef = React.createRef()
+    let classRef = React.createRef()
+    let elementRef = React.createRef()
+    const changeInput = () => {
+        forwardRef.current.value = 'ForwardRef....'
+        classRef.current.updateText('100')
+        elementRef.current.value = 'xxxx'
+    }
+
     return (
-        <div style={{ color: 'red' }}>
-            Functional Hello React<span> span</span>
+        <div>
+            <ForwardRefFunctionalComponent ref={forwardRef}/><br/>
+            <input ref={elementRef}/><br/>
+            <input type="button" onClick={changeInput}  value="Click me change to xxx"/>
+            <ClassComponent ref={classRef}/>
+
         </div>
     );
 }
@@ -66,8 +81,8 @@ class RootComponent extends React.Component {
         );
     }
 }
+debugger;
 
-
-// ReactDOM.render(<FuncComponent />, document.getElementById('root'));
+ReactDOM.render(<FuncComponent />, document.getElementById('root'));
 // ReactDOM.render(<ClassComponent a="1"/>, document.getElementById('root'));
-ReactDOM.render(<RootComponent/>, document.getElementById('root'));
+// ReactDOM.render(<RootComponent/>, document.getElementById('root'));
