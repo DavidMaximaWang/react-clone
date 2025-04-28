@@ -37,5 +37,9 @@ function createElement(type, properties, children) {
     "_store": {}
 }*/
 
-const React = { createElement, Component };
+function createRef() {
+    return { current: null };
+}
+
+const React = { createElement, Component, createRef };
 export default React;

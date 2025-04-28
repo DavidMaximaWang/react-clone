@@ -28,6 +28,46 @@ function FuncComponent(props) {
     );
 }
 
+class RootComponent extends React.Component {
+    constructor(props) {
+        super();
+        this.props = props;
+        this.state = { count: 0 };
+        this.ref = React.createRef();
+        this.show100 = this.show100.bind(this);
+        this.focusElement = this.focusElement.bind(this)
+    }
+    show100() {
+        this.ref.current.updateText(100);
+    }
+
+    // render() {
+    //     return (
+    //         <div>
+    //             <div onClick={this.show100}>xxx</div>
+    //             <ClassComponent ref={this.ref} />
+    //         </div>
+    //     );
+    // }
+    focusElement() {
+        if (this.ref.current) {
+            this.ref.current.focus()
+        }
+    }
+    render() {
+        return (
+            <div>
+                <input type="text" ref={this.ref}/>
+                <input type="button"
+                value="focus to the input"
+            onClick={this.focusElement}
+                />
+            </div>
+        );
+    }
+}
+
 
 // ReactDOM.render(<FuncComponent />, document.getElementById('root'));
-ReactDOM.render(<ClassComponent a="1"/>, document.getElementById('root'));
+// ReactDOM.render(<ClassComponent a="1"/>, document.getElementById('root'));
+ReactDOM.render(<RootComponent/>, document.getElementById('root'));

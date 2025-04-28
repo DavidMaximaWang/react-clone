@@ -9,7 +9,7 @@ function render(VNode, containerDOM) {
 }
 
 function createDOM(VNode) {
-    const { type, props } = VNode;
+    const { type, props, ref } = VNode;
 
     let dom;
     if (typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT && VNode.type.IS_CLASS_COMPONENGT) {
@@ -32,6 +32,9 @@ function createDOM(VNode) {
         }
         setPropsForDOM(dom, props);
     }
+    if (ref) {
+        ref.current = dom;
+    }
 
     VNode.dom = dom;
     return dom;
@@ -43,11 +46,12 @@ function getDOMFromFunctionalComponent(VNode) {
     if (!renderVNode) {
         return null;
     }
+
     return createDOM(renderVNode);
 }
 
 function getDomByClassComponent(VNode) {
-    const { type, props } = VNode;
+    const { type, props, ref } = VNode;
     const instance = new type(props);
     const renderVNode = instance.render();
     instance.oldVNode = renderVNode;
@@ -60,6 +64,9 @@ function getDomByClassComponent(VNode) {
     */
     if (!render) {
         return null;
+    }
+    if (ref) {
+        ref.current = instance
     }
     return createDOM(renderVNode);
 }
