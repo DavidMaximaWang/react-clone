@@ -210,6 +210,7 @@ function updateFunctionalComPonent(oldVNode, newVNode) {
 }
 
 //dom diff core
+// can improve by 'longest increasing subsequence'
 function updateChildren(parentDOM, oldVNodeChildren, newVNodeChildren) {
     oldVNodeChildren = (Array.isArray(oldVNodeChildren) ? oldVNodeChildren : [oldVNodeChildren]).filter(Boolean);
     newVNodeChildren = (Array.isArray(newVNodeChildren) ? newVNodeChildren : [newVNodeChildren]).filter(Boolean);
