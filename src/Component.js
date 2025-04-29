@@ -79,6 +79,10 @@ export class Component {
         // mount the real dom
         let oldVNode = this.oldVNode; //todo add oldVNode
         let oldDOM = findDOMByVNode(oldVNode) // todo save real dom to vnode
+        if (this.constructor.getDerivedStateFromProps) {
+            const newState = this.constructor.getDerivedStateFromProps(this.props, this.state);
+            this.state = {...this.state, ...newState}
+        }
         let newVNode = this.render();
         updateDOMTree(oldVNode, newVNode, oldDOM)
         this.oldVNode = newVNode;
