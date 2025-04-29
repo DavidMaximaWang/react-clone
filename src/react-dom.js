@@ -14,23 +14,20 @@ function createDOM(VNode) {
     let dom;
     if (type && type.$$typeof === REACT_FORWARD_DREF) {
         return getDOMFromForwardRef(VNode);
-    }
-    if (typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT && VNode.type.IS_CLASS_COMPONENGT) {
+    } else if (typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT && VNode.type.IS_CLASS_COMPONENGT) {
         return getDomByClassComponent(VNode);
     } else if (typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT) {
         return getDOMFromFunctionalComponent(VNode);
-    }
-    if (type === REACT_TEXT) {
+    } else if (type === REACT_TEXT) {
         dom = document.createTextNode(props.text);
-    }
-    else if (type && VNode.$$typeof === REACT_ELEMENT) {
+    } else if (type && VNode.$$typeof === REACT_ELEMENT) {
         dom = document.createElement(type); // need to consider the textnode case if use setAttribute(key, VNodeProps[key])
         //https://reactjs.org/docs/introducing-jsx.html
-            // Since JSX is closer to JavaScript than to HTML, React DOM uses camelCase property naming convention instead of HTML attribute names.
-            // For example, class becomes className in JSX, and tabindex becomes tabIndex.
+        // Since JSX is closer to JavaScript than to HTML, React DOM uses camelCase property naming convention instead of HTML attribute names.
+        // For example, class becomes className in JSX, and tabindex becomes tabIndex.
     }
 
-    if (props) {
+    if (props && dom.type !== Node.TEXT_NODE) {
         //single children
         if (typeof props.children === 'object' && props.children.type) {
             mount(props.children, dom);
