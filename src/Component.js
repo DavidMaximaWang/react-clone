@@ -1,4 +1,5 @@
 import { findDOMByVNode , updateDOMTree} from "./react-dom";
+import {deepClone} from "./utils"
 
 export const updaterQueue = {
     isBatch: false,
@@ -36,6 +37,8 @@ class Updater {
         if (pendingStates.length === 0 && !nextProps) {
             return;
         }
+        const prevProps = deepClone(this.classComponentInstance.props)
+        const prevState = deepClone(this.classComponentInstance.state)
         const nextState = classComponentInstance.state = this.pendingStates.reduce((preState, newState) => {
             return { ...preState, ...newState };
         }, classComponentInstance.state);
@@ -51,7 +54,7 @@ class Updater {
 
         this.pendingStates.length = 0;
         if (shouldComponentUpdate) {
-            classComponentInstance.update();
+            classComponentInstance.update(prevProps, prevState);
         }
     }
 }
@@ -73,7 +76,7 @@ export class Component {
         this.updater.addState(partialState);
     }
 
-    update() {
+    update(prevProps, prevState) {
         // get the new vdom after rerender
         // based on the new vdom, create the real dom
         // mount the real dom
@@ -83,11 +86,12 @@ export class Component {
             const newState = this.constructor.getDerivedStateFromProps(this.props, this.state);
             this.state = {...this.state, ...newState}
         }
+        let snapshot = this.getSnapshotBeforeUpdate && this.getSnapshotBeforeUpdate(prevProps, prevState)
         let newVNode = this.render();
         updateDOMTree(oldVNode, newVNode, oldDOM)
         this.oldVNode = newVNode;
         if (this.componentDidUpdate) {
-            this.componentDidUpdate(this.props, this.state)
+            this.componentDidUpdate(this.props, this.state, snapshot)
         }
     }
 }
