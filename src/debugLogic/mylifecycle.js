@@ -39,6 +39,12 @@ class Clock extends React.Component {
         console.log("Did update", this.state.date)
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        console.log("should component update");
+        // return false; // won't update
+        return true; // update
+    }
+
     tick() {
       this.setState({
         date: new Date()

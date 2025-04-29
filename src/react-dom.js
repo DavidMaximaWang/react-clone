@@ -208,7 +208,7 @@ function deepDOMDiff(oldVNode, newVNode) {
 
 function updateClsssComPonent(oldVNode, newVNode){
     const classInstance = newVNode.classInstance = oldVNode.classInstance;
-    classInstance.updater.launchUpdate();
+    classInstance.updater.launchUpdate(newVNode.props);
 }
 
 function updateFunctionalComPonent(oldVNode, newVNode) {
