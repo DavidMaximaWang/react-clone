@@ -67,7 +67,7 @@ export class Component {
         let oldVNode = this.oldVNode; //todo add oldVNode
         let oldDOM = findDOMByVNode(oldVNode) // todo save real dom to vnode
         let newVNode = this.render();
-        updateDOMTree(oldDOM, newVNode)
+        updateDOMTree(oldVNode, newVNode, oldDOM)
         this.oldVNode = newVNode;
 
 

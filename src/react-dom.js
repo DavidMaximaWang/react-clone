@@ -1,4 +1,4 @@
-import { REACT_ELEMENT, REACT_FORWARD_DREF } from './utils';
+import {MOVE, CREATE, REACT_ELEMENT, REACT_FORWARD_DREF, REACT_TEXT } from './utils';
 import {addEventListener} from './event.js'
 
 //initial render
@@ -20,7 +20,11 @@ function createDOM(VNode) {
     } else if (typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT) {
         return getDOMFromFunctionalComponent(VNode);
     }
-    if (type && VNode.$$typeof === REACT_ELEMENT) {
+    if (type === REACT_TEXT) {
+        dom = document.createTextNode(props.text);
+        return dom;
+    }
+    else if (type && VNode.$$typeof === REACT_ELEMENT) {
         dom = document.createElement(type);
     }
 
@@ -30,8 +34,6 @@ function createDOM(VNode) {
             mount(props.children, dom);
         } else if (props.children instanceof Array) {
             mountArray(props.children, dom);
-        } else if (typeof props.children === 'string') {
-            dom.appendChild(document.createTextNode(props.children));
         }
         setPropsForDOM(dom, props);
     }
@@ -109,12 +111,9 @@ function mount(VNode, containerDOM) {
 
 function mountArray(children, containerDOM) {
     if (!Array.isArray(children)) return;
-    for (let child of children) {
-        if (typeof child === 'string') {
-            containerDOM.appendChild(document.createTextNode(child));
-        } else {
-            mount(child, containerDOM);
-        }
+    for (let [i, child] of Object.entries(children)) {
+        child.index = i;
+        mount(child, containerDOM);
     }
 }
 
@@ -125,10 +124,143 @@ export function findDOMByVNode(VNode) {
     return VNode.dom;
 }
 
-export function updateDOMTree(oldDOM, newVNode) {
+export function updateDOMTree(oldVNode, newVNode, oldDOM) {
     let parentNode = oldDOM.parentNode;
-    parentNode.removeChild(oldDOM)
-    parentNode.appendChild(createDOM(newVNode))
+    // parentNode.removeChild(oldDOM)
+    // parentNode.appendChild(createDOM(newVNode))
+
+    // oldVNode: exist? type? and newVNode: exist? type?
+    // compare if both exist and type are the same
+    const TYPE_MAP = {
+        NO_OPERATE: !oldVNode && !newVNode,
+        ADD: !oldVNode && newVNode,
+        DELETE: oldVNode && !newVNode,
+        REPLACE: oldVNode && newVNode && oldVNode.type !== newVNode.type
+    }
+    let UPDATE_TYPE = Object.keys(TYPE_MAP).filter(key=> TYPE_MAP[key])[0];
+    switch (UPDATE_TYPE) {
+        case 'NO_OPERATE':
+            break;
+        case 'ADD':
+            oldDOM.parentNode.appendChild(createDOM(newVNode))
+            break;
+        case 'DELETE':
+            removeVNode(oldVNode);
+            break;
+        case 'REPLACE':
+            removeVNode(oldVNode);
+            oldDOM.parentNode.appendChild(createDOM(newVNode));
+            break;
+        default:
+            deepDOMDiff(oldVNode, newVNode)
+            break;
+    }
+}
+
+function removeVNode(oldVNode) {
+    const currentDOM = findDOMByVNode(oldVNode)
+    if (currentDOM) {
+        currentDOM.remove();
+    }
+}
+
+function deepDOMDiff(oldVNode, newVNode) {
+    let diffTypeMap = {
+        ORIGIN_NODE: typeof oldVNode.type === 'string',
+        CLASS_COMPONENT: typeof oldVNode.type === 'function' && oldVNode.$$typeof === REACT_ELEMENT && oldVNode.type.IS_CLASS_COMPONENGT,
+        FUNCTIONAL_COMPONENT: typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT,
+        TEXT: typeof oldVNode.type === REACT_TEXT,
+    }
+    let DIFF_TYPE = Object.keys(diffTypeMap).filter(key=> diffTypeMap[key])[0]
+    switch (DIFF_TYPE) {
+        case 'ORIGIN_NODE':
+            let currentDOM = newVNode.dom = findDOMByVNode(oldVNode);
+            setPropsForDOM(currentDOM, newVNode.props);
+            updateChildren(currentDOM, oldVNode.props.children, newVNode.props.children);
+            break;
+        case 'CLASS_COMPONENT':
+            updateClsssComPonent(oldVNode, newVNode);
+            break;
+        case 'FUNCTIONAL_COMPONENT':
+            updateFunctionalComPonent(oldVNode, newVNode)
+            break;
+        case 'TEXT':
+            newVNode.dom = findDOMByVNode(oldVNode);
+            newVNode.dom.textContent = newVNode.props.text;
+            break;
+        default:
+            break;
+    }
+}
+
+function updateClsssComPonent(oldVNode, newVNode){
+    const classInstance = newVNode.classInstance = oldVNode.classInstance;
+    classInstance.updater.launchUpdate();
+}
+
+function updateFunctionalComPonent(oldVNode, newVNode) {
+    let oldDOM = findDOMByVNode(oldVNode)
+    if (!oldDOM) {
+        return;
+    }
+    const {type, props} = newVNode;
+    let newRenderedVNode = type(props)
+    updateDOMTree(oldVNode, newRenderedVNode, oldDOM);
+
+}
+
+//dom diff core
+function updateChildren(parentDOM, oldVNodeChildren, newVNodeChildren) {
+    oldVNodeChildren = (Array.isArray(oldVNodeChildren) ? oldVNodeChildren : [oldVNodeChildren]).filter(Boolean);
+    newVNodeChildren = (Array.isArray(newVNodeChildren) ? newVNodeChildren : [newVNodeChildren]).filter(Boolean);
+    let lastNotChangeIndex = -1;
+    let oldKeyChildMap = {};
+    oldVNodeChildren.forEach((oldVNode, index) => {
+        let oldKey = oldVNode && oldVNode.key ? oldVNode.key : index;
+        oldKeyChildMap[oldKey] = oldVNode;
+    });
+
+    // traverse new children vdom array, find which can be reused but need to move position, which need to be created, need to be deleted, can resuse and position correct
+
+    let actions = [];
+    newVNodeChildren.forEach((newVNode, index) => {
+        newVNode.index = index;
+        let newKey = newVNode.key ? newVNode.key : index;
+        let oldVNode = oldKeyChildMap[newKey];
+        if (oldVNode) {
+            deepDOMDiff(oldVNode, newVNode);
+            if (oldVNode.index < lastNotChangeIndex) {
+                actions.push({
+                    type: MOVE,
+                    oldVNode,
+                    newVNode,
+                    index
+                });
+            }
+            delete oldKeyChildMap[newKey];
+            lastNotChangeIndex = Math.max(lastNotChangeIndex, oldVNode.index);
+        } else {
+            actions.push({ type: CREATE, newVNode, index });
+        }
+    });
+    let VNodeToMove = actions.filter((action) => action.type === MOVE).map((action) => action.oldVNode);
+    let VNodeToDelete = Object.values(oldKeyChildMap);
+    [...VNodeToMove, ...VNodeToDelete].forEach((oldVNode) => {
+        let currentDOM = findDOMByVNode(oldVNode);
+        currentDOM.remove();
+    });
+    actions.forEach(({ type, oldVNode, newVNode, index }) => {
+        const getDomForInsert = () => {
+            if (type === CREATE) {
+                return createDOM(newVNode);
+            } else {
+                return findDOMByVNode(oldVNode);
+            }
+        };
+        let childNodes = parentDOM.childNodes;
+        let childNode = childNodes[index];
+        parentDOM.insertBefore(getDomForInsert(), childNode);
+    });
 }
 
 const ReactDOM = {
