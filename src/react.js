@@ -1,5 +1,6 @@
 import { REACT_ELEMENT, REACT_FORWARD_DREF, toVNode } from './utils';
 import { Component } from './Component';
+import PureComponent from './PureComponent';
 
 function createElement(type, properties, children) {
     let ref = properties.ref || null;
@@ -48,5 +49,5 @@ function forwardRef(render) {
     }
 }
 
-const React = { createElement, Component, createRef, forwardRef };
+const React = { createElement, Component,  PureComponent, createRef, forwardRef };
 export default React;
