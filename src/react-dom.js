@@ -22,10 +22,12 @@ function createDOM(VNode) {
     }
     if (type === REACT_TEXT) {
         dom = document.createTextNode(props.text);
-        return dom;
     }
     else if (type && VNode.$$typeof === REACT_ELEMENT) {
-        dom = document.createElement(type);
+        dom = document.createElement(type); // need to consider the textnode case if use setAttribute(key, VNodeProps[key])
+        //https://reactjs.org/docs/introducing-jsx.html
+            // Since JSX is closer to JavaScript than to HTML, React DOM uses camelCase property naming convention instead of HTML attribute names.
+            // For example, class becomes className in JSX, and tabindex becomes tabIndex.
     }
 
     if (props) {
@@ -64,6 +66,7 @@ function getDOMFromFunctionalComponent(VNode) {
 function getDomByClassComponent(VNode) {
     const { type, props, ref } = VNode;
     const instance = new type(props);
+    VNode.classInstance = instance;
     const renderVNode = instance.render();
     instance.oldVNode = renderVNode;
     /* //todo test only, remove later, start
@@ -79,7 +82,11 @@ function getDomByClassComponent(VNode) {
     if (ref) {
         ref.current = instance
     }
-    return createDOM(renderVNode);
+    const dom = createDOM(renderVNode);
+    if (instance && instance.componentDidMount) {
+        instance.componentDidMount();
+    }
+    return dom;
 }
 
 function setPropsForDOM(dom, VNodeProps = {}) {
@@ -97,7 +104,7 @@ function setPropsForDOM(dom, VNodeProps = {}) {
                 dom.style[key] = value;
             });
         } else {
-            dom.setAttribute(key, VNodeProps[key]);
+            dom[key] = VNodeProps[key]
         }
     }
 }
@@ -121,7 +128,9 @@ export function findDOMByVNode(VNode) {
     if(!VNode) {
         return
     }
-    return VNode.dom;
+    if (VNode.dom) {
+        return VNode.dom;
+    }
 }
 
 export function updateDOMTree(oldVNode, newVNode, oldDOM) {
@@ -142,14 +151,14 @@ export function updateDOMTree(oldVNode, newVNode, oldDOM) {
         case 'NO_OPERATE':
             break;
         case 'ADD':
-            oldDOM.parentNode.appendChild(createDOM(newVNode))
+            parentNode.appendChild(createDOM(newVNode))
             break;
         case 'DELETE':
             removeVNode(oldVNode);
             break;
         case 'REPLACE':
             removeVNode(oldVNode);
-            oldDOM.parentNode.appendChild(createDOM(newVNode));
+            parentNode.appendChild(createDOM(newVNode));
             break;
         default:
             deepDOMDiff(oldVNode, newVNode)
@@ -157,10 +166,13 @@ export function updateDOMTree(oldVNode, newVNode, oldDOM) {
     }
 }
 
-function removeVNode(oldVNode) {
-    const currentDOM = findDOMByVNode(oldVNode)
+function removeVNode(vNode) {
+    const currentDOM = findDOMByVNode(vNode)
     if (currentDOM) {
         currentDOM.remove();
+    }
+    if (vNode.classInstance && vNode.classInstance.componentWillUnmount) {
+        vNode.classInstance.componentWillUnmount()
     }
 }
 
@@ -169,8 +181,9 @@ function deepDOMDiff(oldVNode, newVNode) {
         ORIGIN_NODE: typeof oldVNode.type === 'string',
         CLASS_COMPONENT: typeof oldVNode.type === 'function' && oldVNode.$$typeof === REACT_ELEMENT && oldVNode.type.IS_CLASS_COMPONENGT,
         FUNCTIONAL_COMPONENT: typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT,
-        TEXT: typeof oldVNode.type === REACT_TEXT,
+        TEXT: oldVNode.type === REACT_TEXT && oldVNode.props.text !== newVNode.props.text,
     }
+
     let DIFF_TYPE = Object.keys(diffTypeMap).filter(key=> diffTypeMap[key])[0]
     switch (DIFF_TYPE) {
         case 'ORIGIN_NODE':
