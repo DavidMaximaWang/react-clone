@@ -1,7 +1,7 @@
 import React from '../react';
 import ReactDOM from '../react-dom';
 
-class Greeting extends React.PureComponent {
+class Greeting1 extends React.PureComponent {
     render() {
         console.log('Greeting was rendered at', new Date().toLocaleTimeString());
         return (
@@ -12,6 +12,17 @@ class Greeting extends React.PureComponent {
         );
     }
 }
+
+function Greeting2({name}) {
+    console.log("rendering memo greeting")
+    return (
+        <h3>
+            Hello{name && ', '}
+            {name}!
+        </h3>
+    );
+}
+const Greeting = React.memo(Greeting2)
 
 class MyApp extends React.Component {
     constructor(props) {

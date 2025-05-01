@@ -1,4 +1,4 @@
-import {MOVE, CREATE, REACT_ELEMENT, REACT_FORWARD_DREF, REACT_TEXT } from './utils';
+import {MOVE, CREATE, REACT_ELEMENT, REACT_FORWARD_DREF, REACT_TEXT, REACT_MEMO } from './utils';
 import {addEventListener} from './event.js'
 
 //initial render
@@ -14,6 +14,8 @@ function createDOM(VNode) {
     let dom;
     if (type && type.$$typeof === REACT_FORWARD_DREF) {
         return getDOMFromForwardRef(VNode);
+    } else if (type && type.$$typeof === REACT_MEMO) {
+        return getDOMByMemoComponent(VNode);
     } else if (typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT && VNode.type.IS_CLASS_COMPONENGT) {
         return getDomByClassComponent(VNode);
     } else if (typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT) {
@@ -56,7 +58,18 @@ function getDOMFromFunctionalComponent(VNode) {
     if (!renderVNode) {
         return null;
     }
+    VNode.oldRenderVNode = renderVNode
+    const dom =  createDOM(renderVNode);
+    VNode.dom = dom;
+    return dom;
+}
 
+function getDOMByMemoComponent(vNode) {
+    const { type, props } = vNode;
+
+    let renderVNode = type.type(props);
+    if (!renderVNode) return null;
+    vNode.oldRenderVNode = renderVNode;
     return createDOM(renderVNode);
 }
 
@@ -131,7 +144,7 @@ export function findDOMByVNode(VNode) {
 }
 
 export function updateDOMTree(oldVNode, newVNode, oldDOM) {
-    let parentNode = oldDOM.parentNode;
+    // let parentNode = oldDOM.parentNode;
     // parentNode.removeChild(oldDOM)
     // parentNode.appendChild(createDOM(newVNode))
 
@@ -148,14 +161,14 @@ export function updateDOMTree(oldVNode, newVNode, oldDOM) {
         case 'NO_OPERATE':
             break;
         case 'ADD':
-            parentNode.appendChild(createDOM(newVNode))
+            oldDOM.parentNode.appendChild(createDOM(newVNode))
             break;
         case 'DELETE':
             removeVNode(oldVNode);
             break;
         case 'REPLACE':
             removeVNode(oldVNode);
-            parentNode.appendChild(createDOM(newVNode));
+            oldDOM.parentNode.appendChild(createDOM(newVNode));
             break;
         default:
             deepDOMDiff(oldVNode, newVNode)
@@ -177,8 +190,9 @@ function deepDOMDiff(oldVNode, newVNode) {
     let diffTypeMap = {
         ORIGIN_NODE: typeof oldVNode.type === 'string',
         CLASS_COMPONENT: typeof oldVNode.type === 'function' && oldVNode.$$typeof === REACT_ELEMENT && oldVNode.type.IS_CLASS_COMPONENGT,
-        FUNCTIONAL_COMPONENT: typeof type === 'function' && VNode.$$typeof === REACT_ELEMENT,
+        FUNCTIONAL_COMPONENT: typeof oldVNode.type === 'function' && oldVNode.$$typeof === REACT_ELEMENT,
         TEXT: oldVNode.type === REACT_TEXT && oldVNode.props.text !== newVNode.props.text,
+        MEMO: oldVNode.type.$$typeof === REACT_MEMO
     }
 
     let DIFF_TYPE = Object.keys(diffTypeMap).filter(key=> diffTypeMap[key])[0]
@@ -198,8 +212,24 @@ function deepDOMDiff(oldVNode, newVNode) {
             newVNode.dom = findDOMByVNode(oldVNode);
             newVNode.dom.textContent = newVNode.props.text;
             break;
+        case 'MEMO':
+            updateMemoFunctionalComponent(oldVNode, newVNode);
+            break;
         default:
             break;
+    }
+}
+
+function updateMemoFunctionalComponent(oldVNode, newVNode) {
+    const {type} = oldVNode
+    if (!type.compare(oldVNode.props, newVNode.props)) {
+        const oldDOM = findDOMByVNode(oldVNode)
+        const {type} = newVNode;
+        let renderVNode = type.type(newVNode.props);
+        newVNode.oldRenderVNode = renderVNode
+        updateDOMTree(oldVNode.oldRenderVNode, renderVNode, oldDOM)
+    } else {
+        newVNode.oldRenderVNode = oldVNode.oldRenderVNode;
     }
 }
 
@@ -209,14 +239,15 @@ function updateClsssComPonent(oldVNode, newVNode){
 }
 
 function updateFunctionalComPonent(oldVNode, newVNode) {
-    let oldDOM = findDOMByVNode(oldVNode)
+    debugger;
+    let oldDOM = newVNode.dom = findDOMByVNode(oldVNode)
     if (!oldDOM) {
         return;
     }
     const {type, props} = newVNode;
     let newRenderedVNode = type(props)
-    updateDOMTree(oldVNode, newRenderedVNode, oldDOM);
-
+    updateDOMTree(oldVNode.oldRenderVNode, newRenderedVNode, oldDOM);
+    newVNode.oldRenderVNode = newRenderedVNode
 }
 
 //dom diff core

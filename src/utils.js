@@ -1,5 +1,6 @@
 export const REACT_ELEMENT =  Symbol('react.element');
 export const REACT_FORWARD_DREF =  Symbol('react.forwardref');
+export const REACT_MEMO =  Symbol('react.memo');
 export const CREATE =  Symbol('react.dom.diff.create');
 export const MOVE =  Symbol('react.dom.diff.move');
 export const REACT_TEXT = Symbol('react.text');
