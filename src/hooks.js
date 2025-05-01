@@ -15,3 +15,15 @@ export function useState(initValue) {
     }
     return [states[hookIndex++], setState];
 }
+
+export function useReducer(reducer, initState) {
+    states[hookIndex] = states[hookIndex] || initState;
+
+    const currentIndex = hookIndex;
+    function dispatch(action) {
+        const newState = reducer(states[currentIndex], action);
+        states[currentIndex] = {...states[currentIndex], ...newState};
+        emitUpdateForHooks();
+    }
+    return [states[hookIndex++], dispatch];
+}
