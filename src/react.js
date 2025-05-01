@@ -1,6 +1,7 @@
 import { REACT_ELEMENT, REACT_FORWARD_DREF, REACT_MEMO, shallCompare, toVNode } from './utils';
 import { Component } from './Component';
 import PureComponent from './PureComponent';
+import { useState } from './hooks';
 
 function createElement(type, properties, children) {
     let ref = properties.ref || null;
@@ -57,5 +58,5 @@ function memo(type, compare=shallCompare) {
     }
 }
 
-const React = { createElement, Component,  PureComponent, createRef, forwardRef, memo };
+const React = { useState, createElement, Component,  PureComponent, createRef, forwardRef, memo };
 export default React;

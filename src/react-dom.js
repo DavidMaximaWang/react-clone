@@ -1,11 +1,18 @@
 import {MOVE, CREATE, REACT_ELEMENT, REACT_FORWARD_DREF, REACT_TEXT, REACT_MEMO } from './utils';
 import {addEventListener} from './event.js'
+import {resetHookIndex} from './hooks.js'
+
+export let emitUpdateForHooks;
 
 //initial render
 function render(VNode, containerDOM) {
     // convert vdom to real dom
     // mount the real dom to containerDOM
     mount(VNode, containerDOM);
+    emitUpdateForHooks = () => {
+        resetHookIndex();
+        updateDOMTree(VNode, VNode, findDOMByVNode(VNode))
+    }
 }
 
 function createDOM(VNode) {
@@ -239,7 +246,6 @@ function updateClsssComPonent(oldVNode, newVNode){
 }
 
 function updateFunctionalComPonent(oldVNode, newVNode) {
-    debugger;
     let oldDOM = newVNode.dom = findDOMByVNode(oldVNode)
     if (!oldDOM) {
         return;

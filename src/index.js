@@ -4,5 +4,6 @@
 // import test from './debugLogic/mylifecycle.js'
 // import test from './debugLogic/derivedState.js'
 // import test from './debugLogic/getSnapshotBeforeUpdate.js'
-import test from './debugLogic/pureComponent.js'
+// import test from './debugLogic/pureComp  onent.js'
+import test from './debugLogic/counter.js'
 test()
