@@ -1,4 +1,4 @@
-import {emitUpdateForHooks} from './react-dom';
+import { emitUpdateForHooks } from './react-dom';
 let states = [];
 let hookIndex = 0;
 
@@ -22,8 +22,32 @@ export function useReducer(reducer, initState) {
     const currentIndex = hookIndex;
     function dispatch(action) {
         const newState = reducer(states[currentIndex], action);
-        states[currentIndex] = {...states[currentIndex], ...newState};
+        states[currentIndex] = { ...states[currentIndex], ...newState };
         emitUpdateForHooks();
     }
     return [states[hookIndex++], dispatch];
+}
+
+export function useEffect(effect, deps = []) {
+    const currentIndex = hookIndex;
+    const [destroyFn, preDeps] = states[hookIndex] || [null, null];
+    if (!states[hookIndex] || deps.some((item, index) => item !== preDeps[index])) {
+        setTimeout(() => {
+            destroyFn && destroyFn();
+            states[currentIndex] = [effect(), deps];
+        });// after Dom mounted
+    }
+    hookIndex++;
+}
+
+export function useLayoutEffect(effect, deps = []) {
+    const currentIndex = hookIndex;
+    const [destroyFn, preDeps] = states[hookIndex] || [null, null];
+    if (!states[hookIndex] || deps.some((item, index) => item !== preDeps[index])) {
+        queueMicrotask(() => {
+            destroyFn && destroyFn();
+            states[currentIndex] = [effect(), deps];
+        });// before Dom mounted, will block mount
+    }
+    hookIndex++;
 }

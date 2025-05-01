@@ -5,5 +5,6 @@
 // import test from './debugLogic/derivedState.js'
 // import test from './debugLogic/getSnapshotBeforeUpdate.js'
 // import test from './debugLogic/pureComp  onent.js'
-import test from './debugLogic/counter.js'
+// import test from './debugLogic/counter.js'
+import test from './debugLogic/chatServerUseEffect.js'
 test()

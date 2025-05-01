@@ -136,6 +136,9 @@ function mount(VNode, containerDOM) {
 function mountArray(children, containerDOM) {
     if (!Array.isArray(children)) return;
     for (let [i, child] of Object.entries(children)) {
+        if (child === false) {
+            continue;
+        }
         child.index = i;
         mount(child, containerDOM);
     }
@@ -198,7 +201,7 @@ function deepDOMDiff(oldVNode, newVNode) {
         ORIGIN_NODE: typeof oldVNode.type === 'string',
         CLASS_COMPONENT: typeof oldVNode.type === 'function' && oldVNode.$$typeof === REACT_ELEMENT && oldVNode.type.IS_CLASS_COMPONENGT,
         FUNCTIONAL_COMPONENT: typeof oldVNode.type === 'function' && oldVNode.$$typeof === REACT_ELEMENT,
-        TEXT: oldVNode.type === REACT_TEXT && oldVNode.props.text !== newVNode.props.text,
+        TEXT: oldVNode.type === REACT_TEXT,
         MEMO: oldVNode.type.$$typeof === REACT_MEMO
     }
 
@@ -217,7 +220,9 @@ function deepDOMDiff(oldVNode, newVNode) {
             break;
         case 'TEXT':
             newVNode.dom = findDOMByVNode(oldVNode);
-            newVNode.dom.textContent = newVNode.props.text;
+            if (oldVNode.props.text !== newVNode.props.text) {
+                newVNode.dom.textContent = newVNode.props.text;
+            }
             break;
         case 'MEMO':
             updateMemoFunctionalComponent(oldVNode, newVNode);
