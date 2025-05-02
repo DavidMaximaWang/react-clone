@@ -1,7 +1,9 @@
 # react-clone
-This version has not Fiber.
-This is the Fiber version: [https://github.com/DavidMaximaWang/react-core](https://github.com/DavidMaximaWang/react-core)
-[github.com/acdlite/react-fiber-architecture](https://github.com/acdlite/react-fiber-architecture)
+This version does not use Fiber.  
+For the Fiber version, see: [react-core](https://github.com/DavidMaximaWang/react-core)
+
+For more on the Fiber architecture, check out:  
+[React Fiber Architecture by Andrew Clark](https://github.com/acdlite/react-fiber-architecture)
 
 From chatgpt:
 React uses **Fiber** as its **reconciliation engine** to improve rendering performance and provide fine-grained control over rendering work. Here's a clear breakdown of **why React uses Fiber**:
