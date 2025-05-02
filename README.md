@@ -1,4 +1,6 @@
 # react-clone
+This version has not Fiber.
+This is the Fiber version: [https://github.com/DavidMaximaWang/react-core](https://github.com/DavidMaximaWang/react-core)
 [github.com/acdlite/react-fiber-architecture](https://github.com/acdlite/react-fiber-architecture)
 
 From chatgpt:
