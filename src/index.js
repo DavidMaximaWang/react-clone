@@ -8,5 +8,6 @@
 // import test from './debugLogic/counter.js'
 // import test from './debugLogic/chatServerUseEffect.js'
 // import test from './debugLogic/ref.js'
-import test from './debugLogic/imperativehandle.js'
+// import test from './debugLogic/imperativehandle.js'
+import test from './debugLogic/memoCallback.js'
 test()

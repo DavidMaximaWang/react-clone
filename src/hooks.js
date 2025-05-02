@@ -1,4 +1,5 @@
 import { emitUpdateForHooks } from './react-dom';
+import { shallCompare } from './utils';
 let states = [];
 let hookIndex = 0;
 
@@ -60,3 +61,30 @@ export function useRef(initialValue) {
 export function useImperativeHandle(ref, refMaker) {
     ref.current = refMaker()
 }
+
+export function useMemo(dataFactory, deps) {
+    const [prevData, prevDeps] = states[hookIndex] || [null, null];
+    if (
+        !states[hookIndex] ||
+        deps.some((item, index) => {
+            return item !== prevDeps[index];
+        })
+    ) {
+        const newData = dataFactory();
+        states[hookIndex++] = [newData, deps];
+        return newData;
+    }
+    hookIndex++;
+
+    return prevData;
+}
+
+export function useCallback(callback, deps) {
+    let [prevCallback, preDeps] = states[hookIndex] || [null, null];
+    if (!states[hookIndex] || deps.some((item, index) => item !== preDeps[index])) {
+        states[hookIndex++] = [callback, deps];
+        return callback;
+    }
+    hookIndex++;
+    return prevCallback;
+  }
